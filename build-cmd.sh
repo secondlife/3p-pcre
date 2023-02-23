@@ -44,7 +44,8 @@ case "$AUTOBUILD_PLATFORM" in
             mkdir -p Win
             pushd Win
 
-                cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" -DCMAKE_CXX_FLAGS="$LL_BUILD_RELEASE" ..
+                cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" -A "$AUTOBUILD_WIN_VSPLATFORM" \
+                      -DCMAKE_CXX_FLAGS="$LL_BUILD_RELEASE" ..
 
                 build_sln PCRE.sln "Release|$AUTOBUILD_WIN_VSPLATFORM" ALL_BUILD
 
