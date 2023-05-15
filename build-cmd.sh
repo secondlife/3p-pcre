@@ -85,6 +85,10 @@ case "$AUTOBUILD_PLATFORM" in
                 export CXX=/usr/bin/llvm-g++
             fi
 
+	    # work around timestamps being inaccurate after recent git checkout resulting in spurious aclocal errors
+	    # see https://github.com/actions/checkout/issues/364#issuecomment-812618265
+	    touch *
+
             # Release
             CFLAGS="$plainopts" CXXFLAGS="$opts" LDFLAGS="$plainopts" \
                 ./configure --disable-dependency-tracking --with-pic --enable-utf --enable-unicode-properties \
