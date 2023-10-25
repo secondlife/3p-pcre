@@ -30,6 +30,9 @@ source_environment_tempfile="$stage/source_environment.sh"
 "$autobuild" source_environment > "$source_environment_tempfile"
 . "$source_environment_tempfile"
 
+# remove_cxxstd
+source "$(dirname "$AUTOBUILD_VARIABLES_FILE")/functions"
+
 PCRE_SOURCE_DIR="pcre"
 VERSION_HEADER_FILE="$PCRE_SOURCE_DIR/config.h.generic"
 version=$(sed -n -E 's/#define PACKAGE_VERSION "([0-9.]+)"/\1/p' "${VERSION_HEADER_FILE}")
@@ -44,7 +47,8 @@ case "$AUTOBUILD_PLATFORM" in
             mkdir -p Win
             pushd Win
 
-                cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" --build . .. -DCMAKE_CXX_FLAGS="$LL_BUILD_RELEASE"
+                cmake -G "$AUTOBUILD_WIN_CMAKE_GEN" -A "$AUTOBUILD_WIN_VSPLATFORM" \
+                      -DCMAKE_CXX_FLAGS="$LL_BUILD_RELEASE" ..
 
                 build_sln PCRE.sln "Release|$AUTOBUILD_WIN_VSPLATFORM" ALL_BUILD
 
@@ -73,6 +77,7 @@ case "$AUTOBUILD_PLATFORM" in
             mkdir -p "$libdir"/release
 
             opts="${TARGET_OPTS:--arch $AUTOBUILD_CONFIGURE_ARCH $LL_BUILD_RELEASE}"
+            plainopts="$(remove_cxxstd $opts)"
 
             # Prefer llvm-g++ if available.
             if [ -x /usr/bin/llvm-gcc -a -x /usr/bin/llvm-g++ ]; then
@@ -80,8 +85,12 @@ case "$AUTOBUILD_PLATFORM" in
                 export CXX=/usr/bin/llvm-g++
             fi
 
+	    # work around timestamps being inaccurate after recent git checkout resulting in spurious aclocal errors
+	    # see https://github.com/actions/checkout/issues/364#issuecomment-812618265
+	    touch *
+
             # Release
-            CFLAGS="$opts" CXXFLAGS="$opts" LDFLAGS="$opts" \
+            CFLAGS="$plainopts" CXXFLAGS="$opts" LDFLAGS="$plainopts" \
                 ./configure --disable-dependency-tracking --with-pic --enable-utf --enable-unicode-properties \
                 --enable-static=yes --enable-shared=no \
                 --prefix="$stage" --includedir="$stage"/include/pcre --libdir="$libdir"/release
@@ -125,6 +134,7 @@ case "$AUTOBUILD_PLATFORM" in
 
             # Default target per AUTOBUILD_ADDRSIZE
             opts="${TARGET_OPTS:--m$AUTOBUILD_ADDRSIZE $LL_BUILD_RELEASE}"
+            plainopts="$(remove_cxxstd $opts)"
 
             # Handle any deliberate platform targeting
             if [ -z "${TARGET_CPPFLAGS:-}" ]; then
@@ -136,7 +146,7 @@ case "$AUTOBUILD_PLATFORM" in
             fi
 
             # Release
-            CFLAGS="$opts" CXXFLAGS="$opts" LDFLAGS="$opts" \
+            CFLAGS="$plainopts" CXXFLAGS="$opts" LDFLAGS="$plainopts" \
                 ./configure --with-pic --enable-utf --enable-unicode-properties \
                 --enable-static=yes --enable-shared=no \
                 --prefix="$stage" --includedir="$stage"/include/pcre --libdir="$libdir"/release
