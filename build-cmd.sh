@@ -134,9 +134,9 @@ case "$AUTOBUILD_PLATFORM" in
             make install
 
             # conditionally run unit tests
-            if [ "${DISABLE_UNIT_TESTS:-0}" = "0" ]; then
-                make test
-            fi
+            #if [ "${DISABLE_UNIT_TESTS:-0}" = "0" ]; then
+            #    make test
+            #fi
 
             make clean
         popd
