@@ -124,6 +124,7 @@ case "$AUTOBUILD_PLATFORM" in
                 export CPPFLAGS="$TARGET_CPPFLAGS"
             fi
 
+            autoreconf -fi
             # Release
             CFLAGS="$plainopts" CXXFLAGS="$opts" LDFLAGS="$plainopts" \
                 ./configure --with-pic --enable-utf --enable-unicode-properties \
